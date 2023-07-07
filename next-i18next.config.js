@@ -1,4 +1,4 @@
-const ChainedBackend = require("i18next-chained-backend").default;
+const MultiloadAdapter = require("i18next-multiload-backend-adapter/cjs");
 const HttpBackend = require("i18next-http-backend/cjs");
 
 const isBrowser = typeof window !== "undefined";
@@ -12,36 +12,20 @@ module.exports = {
     defaultLocale: "en",
     locales: ["en", "fr"],
   },
-
+  debug: process.env.NODE_ENV === "development",
   reloadOnPrerender: process.env.NODE_ENV === "development",
   defaultNS: ["account", "blog", "cart", "sort_labels"],
-  allowMultiLoading: true,
-
+  localePath: typeof window === 'undefined'
+    ? require('path').resolve('./pages/api/locales')
+    : '`/api/translation?lng={{lng}}&ns={{ns}}`',
   preload: ["en"],
   ...(isBrowser && {
-    use: [ChainedBackend],
+    use: [MultiloadAdapter],
     backend: {
-      allowMultiLoading: true,
-
-      backends: [HttpBackend],
-      backendOptions: [
-        {
-          allowMultiLoading: true,
-
-          loadPath: `http://localhost:3000/api/translation?lang={{lng}}&&ns={{ns}}`,
-          parse: (data, _, namespaces) => {
-            const parsedData = JSON.parse(data);
-            console.log(`Parsing namespace: ${namespaces}`);
-
-            if (typeof namespaces === "string") {
-              return parsedData[namespaces];
-            }
-
-            // handles 'file.json' and any other unknown cases
-            return parsedData;
-          },
-        },
-      ],
+      backend: HttpBackend,
+      backendOption: {
+        loadPath: `http://localhost:3000/api/translation?lng={{lng}}&ns={{ns}}`,
+      },
     },
   }),
 };
