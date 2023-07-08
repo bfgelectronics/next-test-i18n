@@ -2,17 +2,14 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import { useTranslation } from "react-i18next";
-import { useEffect } from "react";
+import { useTranslation } from "next-i18next";
+import type { GetStaticProps } from 'next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
-  const { t, i18n } = useTranslation();
-
-  useEffect(() => {
-    i18n.changeLanguage("en");
-  }, []);
+  const { t } = useTranslation(['blog', 'account', 'cart']);
 
   return (
     <>
@@ -123,3 +120,18 @@ export default function Home() {
     </>
   );
 }
+
+type Props = {
+  // Add custom props here
+}
+
+// or getServerSideProps: GetServerSideProps<Props> = async ({ locale })
+export const getStaticProps: GetStaticProps<Props> = async ({
+  locale,
+}) => ({
+  props: {
+    ...(await serverSideTranslations(locale ?? 'en', [
+      'blog', 'account', 'cart'
+    ])),
+  },
+})
